@@ -1,66 +1,46 @@
 # 5 Things to Focus On
-_Generated 2026-03-28_
+
+_Generated 2026-03-30 from Slack, Notion, and Linear_
 
 ---
 
-## 1. CMS Sublimit Outage — Postmortem Needed
-**Source:** [#tech-plat-leadership (Slack)](slack://channel?team=&id=tech-plat-leadership)
+## 1. Production MCP Cannot Connect (DP1-3222)
 
-Between **March 16 ~11am PT and March 18 12:15pm PT**, a CMS publish caused stale sublimit property bindings on some UAS pods. Allied Health policy PDFs generated during this window had **blank Media & Advertising Liability fields** (sublimit, retention, aggregate limit, retro date) — even though the rating engine was returning correct data. Quote PDFs were unaffected.
+**Source:** [Slack #2026q1-underwriting-guidelines-agent](https://yourcounterpart.slack.com/archives/C09TB9LC739/p1774036208289639) · [Linear DP1-3222](https://linear.app/counterpart/issue/DP1-3222/prod-mcp-cannot-connect)
 
-There are open questions from Ron worth closing out:
-- Did this reproduce on the QA deploy?
-- Why did it only surface on the Sandbox/Prod deploy step?
-- How do we better communicate this type of breakage ahead of production deploys?
+The production underwriting guidelines MCP server broke after a deploy on March 20 — users are getting `invalid_token` / `Field required` auth errors. You were pinged directly. Nacho took point on debugging an OAuth scope issue, but the ticket is still open. Worth confirming this is fully resolved in prod before more agents depend on it.
 
 ---
 
-## 2. Daily Release Window Proposal — Decision Pending
-**Source:** [#tech-plat-leadership (Slack)](slack://channel?team=&id=tech-plat-leadership)
+## 2. Agentic UW Pod: Policy Binder + Multi-Quote Mods Bug
 
-Ron (in conversation with you) proposed a **daily 10am PT release window** to reduce Business Critical Outages for the UAS platform:
+**Source:** [Slack #agentic-underwriting-action-pod](https://yourcounterpart.slack.com/archives/C09E3N47W2J/p1773342856521479) · [Linear TEC-5427](https://linear.app/counterpart/issue/TEC-5427/support-mods-and-schedule-factors-should-not-be-global)
 
-1. Lock merges to main at 10am PT
-2. Run a checksum suite against QA
-3. If passing, promote to prod
-
-Tony suggested a refinement: cut a `release/<timestamp>` branch from HEAD at 10am, tag it, and promote that exact artifact — patching the release branch (not main) if QA fails. This is still an open thread and likely needs a decision or next step.
+Three live items from the March 12 pod recap:
+- **Policy binder** is nearly production-ready — Tiffany is finishing QA validation, then Ben flips it on. Close to the finish line.
+- **Multi-quote mods display bug** (TEC-5427): mods set on one quote version incorrectly show on other versions. Ben is investigating; likely requires a rating call on version switch.
+- **Snapshot-on-approval** was flagged as increasingly important for audit clarity — worth getting on the backlog formally.
 
 ---
 
-## 3. Tech Plat US Onsite — April 15–17, Seattle
-**Source:** [#tech-plat-leadership (Slack)](slack://channel?team=&id=tech-plat-leadership)
+## 3. Backend Agents for Auto-UW Summarization
 
-Dave Lin confirmed an upcoming onsite:
-- **Dates:** April 15–17
-- **Location:** Seattle
-- Team dinner on April 15
-- Working sessions April 16 (9am) through April 17 (~2pm)
-- Macey is coordinating lodging; agenda coming soon
+**Source:** [Slack #data-eng](https://yourcounterpart.slack.com/archives/C05N9KSDM5K/p1773114744252699)
 
-Worth confirming travel/lodging and checking if there's anything to add to the agenda.
+Newton flagged on March 9 that **backend agents are the most important near-term AI platform workstream** — the field team is already asking for auto-UW to summarize referrals and approvals via Slack. This needs to be scoped as part of the broader auto-action architecture before ad-hoc builds pile up. The AI platform discussion was revisiting four topics: UAS MCP, Backend Agents, Observability, and Evaluations.
 
 ---
 
-## 4. The Productivity Paradox: AI Coding Tools Aren't Speeding Up Teams
-**Source:** [Notion — "The Productivity Paradox: Why Faster Coding Isn't Faster Shipping"](https://www.notion.so/318b9be2b0f38164a79fe2d2185029cf)
+## 4. Salesforce MCP Integration
 
-A recent write-up (March 9) digs into METR's 2025 RCT study and Faros AI's analysis of 10,000+ developers. Key findings:
+**Source:** [Slack #emerging-products](https://yourcounterpart.slack.com/archives/C089Q68S484/p1772566746527019)
 
-- METR found AI **slowed experienced developers by 19%** on real tasks (despite developers self-estimating a 20% speedup)
-- Faros AI found at the team level: PR review time **up 91%**, average PR size **up 154%**, bugs per developer **up 9%**
-- **DORA metrics showed zero correlation with AI adoption at the company level**
-
-The argument: coding was never the bottleneck — review, testing, and decision-making are. The piece concludes with a Counterpart-specific take: saved time should flow into deeper domain understanding, not headcount cuts.
+You were CC'd on this discussion (March 3). Vinicius scheduled a follow-up call on Salesforce MCP, describing it as "an important topic" that may need several meetings before a final solution is chosen. No decision has been surfaced yet — worth checking where this landed and whether a path forward has been agreed.
 
 ---
 
-## 5. Data API Issues — Unicourt & Experian
-**Source:** [#data (Slack)](slack://channel?team=&id=data) — Data On-Call Checklist 2026-03-20
+## 5. Kubernetes EKS Auto+v1.31 Upgrade Runbook
 
-From the most recent data on-call checklist (Larissa, March 20):
+**Source:** [Notion — Kubernetes EKS Auto+v1.31 Upgrade Runbook](https://www.notion.so/counterpart/307b9be2-b0f3-807e-bd5f-e4641ab156a7)
 
-- **Unicourt** hit a ~54% error rate due to a forbidden error — resolved by Unicourt after one day
-- **Experian** hit a ~38% error rate after they removed BINs from their database, causing `get details` to fail — Thiago fixed it by triggering a new search when a BIN is removed
-
-Both are now green, but worth checking whether there are any lingering edge cases from the Experian BIN removal and whether the fix is fully deployed.
+This runbook was updated 4 days ago (March 26), suggesting the upgrade is either in progress or imminent. Includes cert-manager v1.20.0 steps and CRD handling. If you're involved in infra, worth a read to know what's live or coming — and whether any services you own need prep work.
