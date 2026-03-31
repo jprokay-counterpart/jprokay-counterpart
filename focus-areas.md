@@ -1,72 +1,79 @@
-# 5 Things to Focus On — 2026-03-29
+# 5 Things to Focus On
+
+_Generated 2026-03-31_
 
 ---
 
-## 1. LiteLLM Supply Chain Attack — Security Action Required
+## 1. 🔴 N+1 Query Hammering 87 Users (Sentry)
 
-**Source:** [#ai-security](https://yourcounterpart.slack.com/archives/C0AF85A87K8/p1774569276216009)
+**Source:** [COUNTERPART-BACKEND-DJANGO-BRX](https://counterpart.sentry.io/issues/COUNTERPART-BACKEND-DJANGO-BRX)
 
-A Python LLM supply chain attack targeting **LiteLLM** is actively in the wild. Chad Nierenhausen flagged this on 2026-03-26 with 15 replies in thread.
-
-**Actions needed:**
-- Confirm neither your code nor any dependency pulls in `litellm`
-- Rotate any API keys (OpenAI, Anthropic, etc.) that may have been exfiltrated
-
-Reference: https://www.comet.com/site/blog/litellm-supply-chain-attack/
+The top user-impacting issue in Sentry right now: an N+1 query on the
+`/admin/application/application/{object_id}/growth_opportunities/` endpoint
+has fired **2,401 events** affecting **87 users** in the last 24 hours and is
+still firing as of minutes ago. Seer rates this as medium actionability — it's
+a real fix, not just noise. Good candidate for a `select_related` / `prefetch_related`.
 
 ---
 
-## 2. Critical Heartbeat Loop Bugs — DB Connection Leaks
+## 2. 🔴 401 Errors Blocking `/startapplication` for 14 Users (Sentry)
 
-**Source:** [DM Julian → Ron](https://yourcounterpart.slack.com/archives/D07QW7UHM8C/p1774568481447979)
+**Source:** [COUNTERPART-FRONTEND-148](https://counterpart.sentry.io/issues/COUNTERPART-FRONTEND-148)
 
-A code review shared on 2026-03-26 identified **critical issues** in `apps/documentation/views.py` (`_heartbeat_loop`):
-
-1. `close_old_connections()` inside the heartbeat loop leaks a connection every 30s — remove it
-2. Staleness window (2 min / 30s heartbeat) is too tight under GIL contention — widen to 3 min
-3. `_update_action_if_pending` incorrectly bumps `last_heartbeat` when writing VALIDATED/FAILED
-4. Heartbeat thread leaves open DB connections if `join(timeout=5)` times out
-
-These are production reliability issues worth resolving promptly.
+An `AxiosError: Request failed with status code 401` is hitting the application
+start flow — 425 events, 14 users, still active. This is a conversion funnel
+issue: brokers trying to start an application are getting auth failures. Worth
+checking whether a session/token expiry edge case or a recent auth middleware
+change is responsible.
 
 ---
 
-## 3. Aspen Billing BIN Variance Trend Is Worsening
+## 3. 🏗️ Salesforce Source of Truth — Architecture Inversion in Progress (Notion)
 
-**Source:** [#data Data On-Call Checklist 2026-03-27](https://yourcounterpart.slack.com/archives/C012XQQPB51/p1774650535294679)
+**Source:** [PR/FAQ: Salesforce Sales Source of Truth](https://www.notion.so/321b9be2b0f381348cf3fd5385097f2f)
 
-File Feed BIN variance is on a **consistent upward trend**:
+A major architectural decision is in draft: **Django Admin becomes read-only
+for broker data; Salesforce becomes the write origin.** Key callouts:
 
-| Date | BIN Variance |
-|------|-------------|
-| Feb 27 | 6 |
-| Mar 13 | 87 |
-| Mar 20 | 87 |
-| Mar 27 | **121** |
+- New `BrokerInboundSyncService` endpoint (`/salesforce-api/brokers/sync/`)
+  receives Apex callouts from Salesforce on create/update
+- Four feature flags gate the cutover sequence
+- Known risks: duplicate office/team name collisions, side-effect suppression
+  (`ignore_signals`) must be airtight before go-live or welcome emails spam users
+- Licensing was explicitly cut from scope to avoid delaying commercial outcomes
 
-Total active Aspen Billing issues also rising: 9 → 105 → 105 → **137**. Root cause not yet identified.
-
-Related Sentry issues: [Consecutive HTTP POST](https://counterpart.sentry.io/issues/6920637583/) (195 events), [SSLError](https://counterpart.sentry.io/issues/6934435439/) (61 events)
-
----
-
-## 4. Two New Bugs in Quote Flows — Checksum Report
-
-**Source:** [#ext-counterpart-checksum](https://yourcounterpart.slack.com/archives/C098P268317/p1774601519450129)
-
-Checksum reported 2 new bugs on 2026-03-27 (10-reply thread, likely triaged):
-
-1. **Edit - Shortening Policy:** "Issue Quote" button is not visible
-2. **Updating PNP Dates:** Quote row is not visible
-
-Both affect core quoting workflows. Worth confirming triage status and whether tickets are open.
+If this is in your area, the pre-cutover data requirements checklist (SyncID
+backfill, split-brain resolution) is the critical path item.
 
 ---
 
-## 5. Kubernetes EKS v1.31 Upgrade Runbook — Active WIP
+## 4. 🚧 Cross-Sell Quote Indication — Key Blockers Identified (Notion)
 
-**Source:** [Notion — Kubernetes EKS Auto+v1.31 Upgrade Runbook](https://www.notion.so/307b9be2-b0f3-807e-bd5f-e4641ab156a7)
+**Source:** [Meeting Notes — Cross-Sell Quote Indication](https://www.notion.so/329b9be2b0f38064b3bffbf63e4bd654)
 
-The EKS v1.31 upgrade runbook was **rewritten on 2026-02-25** and last updated **3 days ago (2026-03-26)**, suggesting this upgrade is actively in progress or imminent. The runbook covers API compatibility checks, cluster health validation, and the upgrade sequence.
+From the March 19 meeting, the cross-sell initiative has active blockers:
 
-Worth confirming: Is this upgrade scheduled? Is sandbox (`k8s-sandbox`) being used for dry-run validation before production?
+- **White-label portal experience** — branded URLs, logos, and themes not yet
+  resolved for the wholesaler/retailer model
+- **Surplus fees + license display** — must appear everywhere: coverage page,
+  total due, and PDF invoices
+- **Pro-rating** uses submission date instead of effective date (known issue)
+- Agent connectivity call happening Tuesday — someone flagged wanting to join
+
+These are blocking retail agents from binding end-to-end through the wholesaler portal.
+
+---
+
+## 5. ⚙️ Kubernetes EKS v1.31 Upgrade — Runbook Active (Notion)
+
+**Source:** [Kubernetes EKS Auto+v1.31 Upgrade Runbook](https://www.notion.so/307b9be2b0f3807ebd5fe4641ab156a7)
+
+Updated 5 days ago, this runbook covers the EKS Auto upgrade to v1.31
+including CoreDNS (v1.11.1-eksbuild.8 → v1.11.3-eksbuild.1). The runbook
+notes uncertainty around what EKS Auto handles automatically for CoreDNS.
+If this upgrade is in-flight or imminent, worth verifying cluster backup
+completion and validating the CoreDNS cutover plan before proceeding.
+
+---
+
+_Sources: Sentry (counterpart.sentry.io), Notion workspace_
