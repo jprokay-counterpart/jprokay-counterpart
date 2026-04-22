@@ -1,71 +1,50 @@
-# 5 Interesting Things — April 21, 2026
+# 5 Interesting Things — 2026-04-22
+
+## 1. Axios Supply Chain Attack Caught and Pinned (SEC-91)
+
+**Source:** [#engineering-releases](https://yourcounterpart.slack.com/archives/C08L5NDM0GZ)
+
+Axios `1.14.1` was identified as carrying a potential supply chain attack. The team pinned the dependency back to `1.13.6` and shipped a hotfix (SEC-91). Worth following up on: it's unclear if a full audit was done of what `1.14.1` may have touched before the pin, and whether a formal post-mortem was published.
 
 ---
 
-## 1. Your PR #8483 Has Been Stale for 5 Days — You're the Blocker
+## 2. Two Production Incidents in 10 Days — One RCA Still Pending
 
-**Source:** [#bluelabel-github-notifications](https://yourcounterpart.slack.com/archives/C08BRAYM1EE/p1776787634420739)
+**Source:** [#general_all](https://yourcounterpart.slack.com/archives/CJ95MNR5H)
 
-You opened [PR #8483 — `fix(INOPS-548): Prevent selecting AI Suggested header and separator in dropdowns`](https://github.com/counterpart-inc/counterpart/pull/8483) 5 days ago. It is listed daily in the pending-review reminder as **waiting on Julian Prokay**. The underlying Linear issue ([INOPS-548](https://linear.app/counterpart/issue/INOPS-548/should-not-be-able-to-select-ai-suggested-from-dropdowns-with-agentic)) was filed by Ron Alexssen on Apr 15 as part of the MPL 2.0 QA push.
+- **April 9–10:** Overnight outage — submissions stopped being processed. Declared stable at 10:30am CST the next day.
+- **April 20:** A Netlify configuration change broke the frontend (Ron Alexssen linked the RCA thread from Eli Evans, who confirmed it was a Netlify-side change). Full post-mortem promised "later this week" — still pending.
 
-You also have a second stale PR from the same period: [#8480 — `feat: replace deepcopy with shallow merge in answers context`](https://github.com/counterpart-inc/counterpart/pull/8480).
-
----
-
-## 2. Production Frontend Outage on Apr 20 — RCA Pending
-
-**Source:** [#devops-public](https://yourcounterpart.slack.com/archives/C08FXS7CZFC/p1776724189005159)
-
-`yourcounterpart.com` was down for **7 minutes (4:11–4:18 AM PDT)** due to a Netlify load balancer change. The A Record was pointing directly at Netlify's load balancer IP rather than the Netlify app address, so when Netlify rotated their LB the site went dark. It was caught by BetterUptime and a customer (Macey) also noticed. Eli Evans is testing a fix in QA before pushing to production. A full RCA and DRI assignment was promised later in the week.
+Two incidents in 10 days is a pattern worth examining. The Netlify one suggests infra config changes may lack sufficient staging validation or change control.
 
 ---
 
-## 3. QA Is Falling Apart — CrashLoopBackOff + 536 MiB Payload Errors
+## 3. New Bug: Runoff/ERP Revert Permanently Blocks Midterm Transactions (UW-506)
 
-**Source:** [#devops-public](https://yourcounterpart.slack.com/archives/C08FXS7CZFC)
+**Source:** [Linear — UW-506](https://linear.app/counterpart/issue/UW-506/runoff-and-erp-revert-support)
 
-QA has been degraded since at least Friday Apr 18 across multiple dimensions:
-
-- **CMS pods** are crashing into `CrashLoopBackOff` (flagged by Leo Vanzella this morning)
-- **CMS validation has been timing out** since Friday — Michelle Sipe filed [INOPS-562](https://linear.app/counterpart/issue/INOPS-562/unable-to-progress-in-cms-validation-timeout)
-- Ron Alexssen hit a **`413 Payload Too Large`** error trying to manually validate: the ZIP being sent to UAS was **536 MiB** — far beyond what the endpoint accepts
-- **Broker portal and backend load times** were reported as very slow by Stanley Wang on Apr 20
-- Redis name-resolution failures were spotted in staging on Apr 14
-
-Mike Loftis is hot-editing the QA deployment right now, bumping resources to **3Gi/3Gi**, to see if that stabilizes the pods.
+Created today, High priority, assigned to Leonardo Vanzella. After processing a Runoff or Cancel/ERP and then reverting it, the policy is stuck — midterm transactions are blocked as if the policy is still in Runoff/ERP state. This is a child of the active Reversal Transaction initiative ([UW-281](https://linear.app/counterpart/issue/UW-281/implement-reversal-transaction)), meaning the revert feature shipped before this edge case was accounted for.
 
 ---
 
-## 4. MPL 2.0 QA Bug Storm — 15+ Issues Filed This Week
+## 4. UW Agent System Architecture + "Agent-Ready Codebase" Initiative Heating Up
 
-**Source:** [#mpl20_qa_support](https://yourcounterpart.slack.com/archives/C0AR48UGJAJ) and Ron Alexssen's comment: *"we are working on getting two fixes out that we think will help this"*
+**Sources:**
+- [UW Agent System — Architecture Proposal (Draft)](https://www.notion.so/341b9be2b0f381cfb446e06a2ab6eaab)
+- [Research Agent Deepdive](https://www.notion.so/346b9be2b0f3819b9dc9ed2e2fcf367c) — Julian Prokay, April 17
+- [Agent-Ready Codebase: Top 5 Priorities](https://www.notion.so/344b9be2b0f381628277cba67acb87ae) — updated today
 
-Since April 15, QA and ops have filed **15+ Linear bugs** under `MPL_20 Bugs` (INOPS-544 through INOPS-562). Notable ones:
-
-| Issue | Title |
-|---|---|
-| [INOPS-554](https://linear.app/counterpart/issue/INOPS-554/prior-claims-table-completely-borked) | Prior claims table completely borked |
-| [INOPS-560](https://linear.app/counterpart/issue/INOPS-560/underwriter-override-not-working) | Underwriter override not working |
-| [INOPS-561](https://linear.app/counterpart/issue/INOPS-561/cant-set-rater-override-for-mpl-20) | Can't set rater override for MPL 2.0 |
-| [INOPS-562](https://linear.app/counterpart/issue/INOPS-562/unable-to-progress-in-cms-validation-timeout) | Unable to progress — CMS validation timeout |
-| [INOPS-549](https://linear.app/counterpart/issue/INOPS-549/coverage-claims-is-not-required-but-app-submit-fails-with-not-all) | Coverage claims not required but app submit fails |
-
-The pace of filing suggests MPL 2.0 is in active QA crunch. Ron's comment that "two fixes" are in progress is likely referring to your PR #8483 and one other.
+The team is actively designing an AI agent system for underwriting. Key architectural decision: using Postgres `FOR UPDATE SKIP LOCKED` as a distributed task queue. The Research Agent Deepdive was published last week and the Agent-Ready Codebase priorities doc was updated today — this is moving from design into active implementation planning.
 
 ---
 
-## 5. You Published a Strategic Doc: "Agent-Ready Codebase: Top 5 Priorities"
+## 5. Three Competing Salesforce EmailMessage Apex Triggers Firing in Undefined Order (EMP-1085)
 
-**Source:** [Notion — Agent-Ready Codebase: Top 5 Priorities](https://www.notion.so/344b9be2b0f381628277cba67acb87ae) (authored Apr 16, under Engineering → Technical Platform)
+**Source:** [Linear — EMP-1085](https://linear.app/counterpart/issue/EMP-1085/salesforce-claims-consolidate-emailmessage-triggers-into-single)
 
-You wrote a detailed tech debt roadmap last week that's worth revisiting now that QA is broken and PRs are stacking up. The five priorities, in order:
+The Claims Salesforce org has three separate Apex triggers on `EmailMessage` with no guaranteed execution order:
+1. `EmailMessage.trigger` → `EmailTrackingLinker.link()`
+2. `EmailMessageTrigger.trigger` → tracking linker, FNOL threading override, adjuster service
+3. A third trigger for first-read status
 
-| # | Initiative | Effort | Impact |
-|---|---|---|---|
-| 1 | One-command dev environment (`make dev`) | Medium | Very High |
-| 2 | Split mega-files (`quote/models.py` is **10,647 lines**) | High | Very High |
-| 3 | `CLAUDE.md` per Django app + docstrings | Low | High |
-| 4 | Service integration test layer (no middle layer today) | Medium | High |
-| 5 | Sentry custom spans + Spotlight for local tracing | Low | Medium |
-
-The doc notes only **2 CLAUDE.md files exist in the entire repo** and there are **no custom Sentry spans**, which connects directly to the QA debugging pain being felt right now in items 3 and 4 above.
+This is an 8-point High priority issue currently In Progress. It represents a latent correctness risk — claims email routing and adjuster assignment may behave unpredictably depending on which trigger fires first. Consolidation into a single handler is underway.
