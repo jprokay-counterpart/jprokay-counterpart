@@ -1,79 +1,49 @@
-# 5 Things to Focus On
-
-_Generated 2026-03-31_
+# 5 Things to Focus On — 2026-04-23
 
 ---
 
-## 1. 🔴 N+1 Query Hammering 87 Users (Sentry)
+## 1. Subjectivity Breaking in MPL 2.0 — Regression Bug in Triage
 
-**Source:** [COUNTERPART-BACKEND-DJANGO-BRX](https://counterpart.sentry.io/issues/COUNTERPART-BACKEND-DJANGO-BRX)
+**Source:** [INOPS-568 · Linear](https://linear.app/counterpart/issue/INOPS-568/subjectivity-failing-mpl-20)
 
-The top user-impacting issue in Sentry right now: an N+1 query on the
-`/admin/application/application/{object_id}/growth_opportunities/` endpoint
-has fired **2,401 events** affecting **87 users** in the last 24 hours and is
-still firing as of minutes ago. Seer rates this as medium actionability — it's
-a real fix, not just noise. Good candidate for a `select_related` / `prefetch_related`.
+The move to the new claims question in MPL 2.0 left `coverage_claims` as null for some applications, which causes subjectivity logic to throw. This is actively blocking QA on a high-priority launch milestone. It's sitting in **Triage** with no assignee — someone needs to own it.
+
+Also related: **[INT-380](https://linear.app/counterpart/issue/INT-380/answers-v3-not-showing-in-qa)** — the Answers v3 page isn't rendering at all for several QA accounts, filed today and also unstarted.
 
 ---
 
-## 2. 🔴 401 Errors Blocking `/startapplication` for 14 Users (Sentry)
+## 2. Autoquote Not Returned to Broker on Digital Submission
 
-**Source:** [COUNTERPART-FRONTEND-148](https://counterpart.sentry.io/issues/COUNTERPART-FRONTEND-148)
+**Source:** [BRS-334 · Linear](https://linear.app/counterpart/issue/BRS-334/update-submission-workflow-to-wait-for-autoquote)
 
-An `AxiosError: Request failed with status code 401` is hitting the application
-start flow — 425 events, 14 users, still active. This is a conversion funnel
-issue: brokers trying to start an application are getting auth failures. Worth
-checking whether a session/token expiry edge case or a recent auth middleware
-change is responsible.
+When a broker submits digitally and the account is autoquotable, they're still seeing the "Under Review" page instead of a live quote. That's a direct revenue leak — the quote is ready but the user never sees it. This is **Urgent, In Progress** assigned to Haziel Sánchez. Worth checking if there's a specific timing/polling threshold decision pending.
 
 ---
 
-## 3. 🏗️ Salesforce Source of Truth — Architecture Inversion in Progress (Notion)
+## 3. UW Agent System Architecture Proposal — Updated Today
 
-**Source:** [PR/FAQ: Salesforce Sales Source of Truth](https://www.notion.so/321b9be2b0f381348cf3fd5385097f2f)
+**Source:** [UW Agent System — Architecture Proposal (Draft) · Notion](https://www.notion.so/341b9be2-b0f3-81cf-b446-e06a2ab6eaab)
 
-A major architectural decision is in draft: **Django Admin becomes read-only
-for broker data; Salesforce becomes the write origin.** Key callouts:
-
-- New `BrokerInboundSyncService` endpoint (`/salesforce-api/brokers/sync/`)
-  receives Apex callouts from Salesforce on create/update
-- Four feature flags gate the cutover sequence
-- Known risks: duplicate office/team name collisions, side-effect suppression
-  (`ignore_signals`) must be airtight before go-live or welcome emails spam users
-- Licensing was explicitly cut from scope to avoid delaying commercial outcomes
-
-If this is in your area, the pre-cutover data requirements checklist (SyncID
-backfill, split-brain resolution) is the critical path item.
+Julian Prokay's architecture proposal for the UW Agent System was updated today and is marked **Draft — For Review**. This is the foundational design doc for how AI agents plug into the underwriting workflow. If major architectural decisions are being made here, now is the time to weigh in before it gets built out.
 
 ---
 
-## 4. 🚧 Cross-Sell Quote Indication — Key Blockers Identified (Notion)
+## 4. Admitted CNR 65-Day Automation Fired — Compliance Notice Needed Today
 
-**Source:** [Meeting Notes — Cross-Sell Quote Indication](https://www.notion.so/329b9be2b0f38064b3bffbf63e4bd654)
+**Source:** [#admitted-conditional-nonrenewal-request · Slack](https://yourcounterpart.slack.com/archives/C0AUJ7A66AJ/p1776953470833509)
 
-From the March 19 meeting, the cross-sell initiative has active blockers:
-
-- **White-label portal experience** — branded URLs, logos, and themes not yet
-  resolved for the wholesaler/retailer model
-- **Surplus fees + license display** — must appear everywhere: coverage page,
-  total due, and PDF invoices
-- **Pro-rating** uses submission date instead of effective date (known issue)
-- Agent connectivity call happening Tuesday — someone flagged wanting to join
-
-These are blocking retail agents from binding end-to-end through the wholesaler portal.
+The automated CNR alert system posted a live compliance notice this morning for **OC Milford Gardens LLC** (MA, effective 2026-06-27, 65 days out). Justin Park is the assigned UW. This is a real compliance deadline — MA requires 45 days minimum notice under M.G.L. c. 175, § 187C. If the CNR isn't issued, the carrier is stuck renewing at existing terms regardless of risk.
 
 ---
 
-## 5. ⚙️ Kubernetes EKS v1.31 Upgrade — Runbook Active (Notion)
+## 5. AI Agent Eval Framework — Large New Epic Landed Today
 
-**Source:** [Kubernetes EKS Auto+v1.31 Upgrade Runbook](https://www.notion.so/307b9be2b0f3807ebd5fe4641ab156a7)
+**Source:** [DP1-3328 · Linear (Epic: Per-Agent Eval Framework)](https://linear.app/counterpart/issue/DP1-3328/epic-per-agent-eval-framework)
 
-Updated 5 days ago, this runbook covers the EKS Auto upgrade to v1.31
-including CoreDNS (v1.11.1-eksbuild.8 → v1.11.3-eksbuild.1). The runbook
-notes uncertainty around what EKS Auto handles automatically for CoreDNS.
-If this upgrade is in-flight or imminent, worth verifying cluster backup
-completion and validating the CoreDNS cutover plan before proceeding.
+A coordinated batch of ~15 issues was created today under the **AI Agent Eval Framework** project, covering a 5-layer evaluation model: Gateway intent classification → Orchestrator routing → per-agent outputs → end-to-end workflow. Highlights:
 
----
+- **[DP1-3335](https://linear.app/counterpart/issue/DP1-3335/ci-integration-for-agent-evaluation)** — CI integration is flagged **Urgent** (fail CI if Gateway F1 < 0.90, workflow completion < 0.95)
+- **[DP1-3344](https://linear.app/counterpart/issue/DP1-3344/shadow-mode-evaluation-pattern)** — Shadow mode eval to run agent in parallel with human underwriters on live submissions
+- **[DP1-3343](https://linear.app/counterpart/issue/DP1-3343/counterfactual-testing-framework)** — Counterfactual testing (what happens when we inject a $400K claim?)
 
-_Sources: Sentry (counterpart.sentry.io), Notion workspace_
+This is a big investment. Worth a sync to align on sequencing before parallel work starts.
